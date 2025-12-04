@@ -1,6 +1,7 @@
 
 # Audio Web Changer
-![video](https://q5.qa/private/Recording%202025-12-04%20042437.mp4)
+<video src="https://q5.qa/private/Recording%202025-12-04%20042437.mp4" controls></video> 
+
 A web-based audio processor that allows you to speed up, slow down, and apply various effects to your music files directly in your browser.
 
 ## 🎵 Features
@@ -67,6 +68,7 @@ A web-based audio processor that allows you to speed up, slow down, and apply va
 
 
 **Built with ❤️ by ENDUP**
+
 
 
 
