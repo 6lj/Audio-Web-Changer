@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Make Slowed+Reverb, Sped Up, Daycore, and Nightcore Remixes</title>
+    <meta name="description" content="The easiest way to slow down, speed up, add reverb, and change the pitch of songs in a free, online generator.">
+    <meta name="author" content="Alex Bainter">
+    <meta name="theme-color" content="#400549">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+    <canvas id="visualizer-canvas" width="1920" height="945" style="width: 1920px; height: 945px;"></canvas>
+    <!-- Language Toggle Button -->
+    <button id="languageToggle" class="language-toggle-btn" title="Switch to Arabic">
+        <i class="fas fa-globe"></i> العربيه
+    </button>
+
+    <!-- Social Links -->
+    <div class="social-links">
+        <a href="https://www.linkedin.com/in/mohammed-al-abyah-a85887238/" target="_blank" class="social-link linkedin" title="LinkedIn">
+            <i class="fab fa-linkedin-in"></i>
+        </a>
+        <a href="https://x.com/m4ua" target="_blank" class="social-link twitter" title="X (Twitter)">
+            <i class="fab fa-x-twitter"></i>
+            <span class="social-text">X</span>
+        </a>
+    </div>
+
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1><i class="fas fa-music"></i> Audio Web Changer</h1>
+            <p>A tool for speeding up and slowing down music, adding audio effects, and enhancing sound quality with ease</p>
+        </header>
+
+        <!-- Upload Section -->
+        <section class="upload-section">
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                </div>
+                <div class="upload-text">
+                    <h3>Upload Your MP3 Files</h3>
+                    <p>Drag and drop files here, or click to select them from your device</p>
+                    <input type="file" id="fileInput" class="file-input" accept=".mp3,audio/*" multiple>
+                    <button class="upload-btn" id="uploadBtn">
+                        <i class="fas fa-folder-open"></i> Choose Files
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- File List -->
+        <section class="file-list" id="fileList" style="display: none;">
+            <h3 class="file-list-title">
+                <i class="fas fa-list-music"></i> Uploaded Files
+            </h3>
+            <div id="fileItems"></div>
+        </section>
+
+        <!-- Loading Bar -->
+        <div class="loading-bar" id="loadingBar" style="display: none;">
+            <div class="loading-progress" id="loadingProgress"></div>
+            <div class="loading-text" id="loadingText">جاري تحميل الملف...</div>
+        </div>
+
+        <!-- Audio Player (moved below file list) -->
+        <div class="audio-player" id="audioPlayer" style="display: none;">
+            <div class="audio-info">
+                <div class="audio-icon">
+                    <i class="fas fa-music"></i>
+                </div>
+                <div class="audio-details">
+                    <h4 id="audioTitle">No audio file selected</h4>
+                    <p id="audioDuration">00:00 / 00:00</p>
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="progress-container">
+                <div class="progress-bar" id="progressBar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="time-display">
+                    <span id="currentTime">00:00</span>
+                    <span id="totalTime">00:00</span>
+                </div>
+            </div>
+
+            <!-- Audio Controls -->
+            <div class="audio-controls">
+                <button class="control-btn" id="prevBtn" title="Previous File">
+                    <i class="fas fa-step-backward"></i>
+                </button>
+                <button class="control-btn play-btn" id="playBtn" title="Play/Pause">
+                    <i class="fas fa-play"></i>
+                </button>
+                <button class="control-btn" id="nextBtn" title="Next File">
+                    <i class="fas fa-step-forward"></i>
+                </button>
+                <button class="control-btn" id="loopBtn" title="Loop">
+                    <i class="fas fa-redo"></i>
+                </button>
+                <button class="control-btn" id="shuffleBtn" title="Shuffle">
+                    <i class="fas fa-random"></i>
+                </button>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <button class="action-btn" id="processBtn">
+                    <i class="fas fa-cog"></i> Process Audio
+                </button>
+                <button class="action-btn download-btn" id="downloadBtn" style="display: none;">
+                    <i class="fas fa-download"></i> Download Result
+                </button>
+                <button class="action-btn" id="resetBtn" onclick="resetAudio()">
+                    <i class="fas fa-undo"></i> Reset
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Controls Layout -->
+        <section class="main-controls">
+            <!-- Top Side: Controls -->
+            <div class="controls-side">
+                <!-- Speed Control -->
+                <div class="control-card">
+                    <div class="control-header">
+                        <div class="control-icon">
+                            <i class="fas fa-tachometer-alt"></i>
+                        </div>
+                        <h3 class="control-title">Playback Speed</h3>
+                    </div>
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span>Very Slow</span>
+                            <span id="speedValue" class="value-display">1.0x</span>
+                            <span>Very Fast</span>
+                        </div>
+                        <input type="range" class="slider" id="speedSlider" min="0.25" max="3.0" step="0.05" value="1.0">
+                    </div>
+                </div>
+
+                <!-- Pitch Control -->
+                <div class="control-card">
+                    <div class="control-header">
+                        <div class="control-icon">
+                            <i class="fas fa-sliders-h"></i>
+                        </div>
+                        <h3 class="control-title">Pitch</h3>
+                    </div>
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span>Low</span>
+                            <span id="pitchValue" class="value-display">0</span>
+                            <span>High</span>
+                        </div>
+                        <input type="range" class="slider" id="pitchSlider" min="-24" max="24" step="1" value="0">
+                    </div>
+                </div>
+
+                <!-- Volume Control -->
+                <div class="control-card">
+                    <div class="control-header">
+                        <div class="control-icon">
+                            <i class="fas fa-volume-up"></i>
+                        </div>
+                        <h3 class="control-title">Volume Level</h3>
+                    </div>
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span>Mute</span>
+                            <span id="volumeValue" class="value-display">100%</span>
+                            <span>Very High</span>
+                        </div>
+                        <input type="range" class="slider" id="volumeSlider" min="0" max="200" step="5" value="100">
+                    </div>
+                </div>
+
+                <!-- New File Button -->
+                <div class="control-card">
+                    <div class="control-header">
+                        <div class="control-icon">
+                            <i class="fas fa-plus"></i>
+                        </div>
+                        <h3 class="control-title">Add File</h3>
+                    </div>
+                    <div class="slider-container">
+                <button class="action-btn" id="newFileBtn" onclick="showUploadSection()" style="width: 100%; margin: 10px 0;">
+                    <i class="fas fa-plus"></i> Another File
+                </button>
+                <button class="action-btn" id="manageFilesBtn" onclick="toggleFileList()" style="width: 100%; margin: 10px 0;">
+                    <i class="fas fa-list"></i> Manage Files
+                </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Side: Effects -->
+            <div class="effects-side">
+                <h3 class="effects-title">
+                    <i class="fas fa-magic"></i> Quick Effects
+                </h3>
+                <div class="effects-grid">
+                    <button class="effect-btn" onclick="applyEffect('slowed', this)">
+                        <i class="fas fa-clock"></i><br>Slowed
+                    </button>
+                    <button class="effect-btn" onclick="applyEffect('sped', this)">
+                        <i class="fas fa-rocket"></i><br>Sped Up
+                    </button>
+                    <button class="effect-btn" onclick="applyEffect('nightcore', this)">
+                        <i class="fas fa-moon"></i><br>Nightcore
+                    </button>
+                    <button class="effect-btn" onclick="applyEffect('daycore', this)">
+                        <i class="fas fa-sun"></i><br>Daycore
+                    </button>
+                    <button class="effect-btn" onclick="applyEffect('reverb', this)">
+                        <i class="fas fa-water"></i><br>Reverb
+                    </button>
+                    <button class="effect-btn" onclick="applyEffect('echo', this)">
+                        <i class="fas fa-wave-square"></i><br>Echo
+                    </button>
+                    <button class="effect-btn" onclick="applyEffect('deep', this)">
+                        <i class="fas fa-dungeon"></i><br>Deep Voice
+                    </button>
+                    <button class="effect-btn" onclick="applyEffect('chipmunk', this)">
+                        <i class="fas fa-asterisk"></i><br>Chipmunk
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Notifications -->
+    <div class="notification" id="notification"></div>
+
+    <script src="js/script.js"></script>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>by ENDUP</p>
+    </footer>
+
+</body>
+</html>
